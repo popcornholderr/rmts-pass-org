@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Secure Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body, html {
       margin: 0;
@@ -10,12 +12,16 @@
       color: #fff;
       font-family: system-ui, sans-serif;
     }
+
     #msg {
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
+      font-size: 1rem;
+      opacity: 0.9;
     }
+
     iframe {
       width: 100%;
       height: 100vh;
@@ -24,6 +30,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <div id="msg">Checking access…</div>
@@ -31,8 +38,8 @@
 
 <script>
   const TOKEN = "USER_TOKEN_001";
-  const BACKEND = "https://fake-pass-lemon.vercel.app/api";
-  const HIDDEN_SITE = "https://fake-pass-lemon.vercel.app";
+  const BACKEND = "https://fake-pass-backend.vercel.app";
+  const HIDDEN_SITE = "https://fake-pass.vercel.app";
 
   function fingerprint() {
     return btoa(
@@ -45,10 +52,11 @@
 
   const device = fingerprint();
   const requestedKey = "requested_" + TOKEN + "_" + device;
+  const msg = document.getElementById("msg");
 
   async function checkAccess() {
     try {
-      const res = await fetch(BACKEND + "/check", {
+      const res = await fetch(`${BACKEND}/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: TOKEN, device })
@@ -57,43 +65,46 @@
       const data = await res.json();
 
       if (data.status === "approved") {
-        document.getElementById("msg").style.display = "none";
+        msg.style.display = "none";
         const f = document.getElementById("frame");
         f.src = HIDDEN_SITE;
         f.style.display = "block";
         return;
       }
 
-      requestApproval();
-    } catch (e) {
-      document.getElementById("msg").innerText =
-        "Server unreachable 💔";
+      await requestApproval();
+
+    } catch (err) {
+      msg.innerText = "Waking server… 💤";
+      setTimeout(checkAccess, 3000); // retry on cold start
     }
   }
 
   async function requestApproval() {
     if (localStorage.getItem(requestedKey)) {
-      document.getElementById("msg").innerText =
-        "Access pending approval.";
+      msg.innerText = "Access pending approval.";
       return;
     }
 
-    await fetch(BACKEND + "/request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: TOKEN, device })
-    });
+    try {
+      await fetch(`${BACKEND}/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: TOKEN, device })
+      });
 
-    localStorage.setItem(requestedKey, "true");
+      localStorage.setItem(requestedKey, "true");
+      msg.innerText = "Access pending approval.";
 
-    document.getElementById("msg").innerText =
-      "Access pending approval.";
+    } catch {
+      msg.innerText = "Server unreachable 💔";
+    }
   }
 
+  // 🔁 keep checking every 5 seconds
   checkAccess();
+  setInterval(checkAccess, 5000);
 </script>
-
 
 </body>
 </html>
-
