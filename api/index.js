@@ -52,12 +52,15 @@ app.post("/request", (req, res) => {
 app.get("/pending/:token", (req, res) => {
   const { token } = req.params;
 
-  if (!tokens[token]) {
-    return res.json([]);
-  }
+  if (!tokens[token]) return res.json([]);
 
-  res.json(tokens[token].pending);
+  res.json(
+    tokens[token].pending.map(d => ({
+      device: d
+    }))
+  );
 });
+
 
 // ✅ APPROVE DEVICE
 app.post("/approve", (req, res) => {
@@ -85,3 +88,4 @@ app.get("/", (req, res) => {
 
 // ❌ DO NOT app.listen() ON VERCEL
 module.exports = app;
+
