@@ -31,10 +31,7 @@
 
 <script>
   const TOKEN = "USER_TOKEN_001";
-
-  // 👇 VERCEL SAFE BACKEND
-  const BACKEND = "/api";
-
+  const BACKEND = "https://fake-pass-lemon.vercel.app/api";
   const HIDDEN_SITE = "https://fake-pass-lemon.vercel.app";
 
   function fingerprint() {
@@ -70,8 +67,7 @@
       requestApproval();
     } catch (e) {
       document.getElementById("msg").innerText =
-        "Server unreachable 💀";
-      console.error(e);
+        "Server unreachable 💔";
     }
   }
 
@@ -97,5 +93,7 @@
   checkAccess();
 </script>
 
+
 </body>
 </html>
+
