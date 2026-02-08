@@ -87,9 +87,8 @@ app.post("/approve", (req, res) => {
 // STATIC FILES (admin panel / frontend)
 app.use(express.static("public"));
 
-app.get("/", (req, res) => {
-  res.send("Backend is running 🟢");
-});
+
 
 // ❌ DO NOT app.listen() ON VERCEL
 module.exports = app;
+
