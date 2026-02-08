@@ -3,9 +3,25 @@
 <head>
   <title>Secure Access</title>
   <style>
-    body, html { margin:0; height:100%; background:#000; color:#fff; }
-    #msg { display:flex; align-items:center; justify-content:center; height:100vh; }
-    iframe { width:100%; height:100vh; border:none; display:none; }
+    body, html {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+    #msg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -15,7 +31,10 @@
 
 <script>
   const TOKEN = "USER_TOKEN_001";
-  const BACKEND = "https://rmts-pass-org.vercel.app";
+
+  // 👇 VERCEL SAFE BACKEND
+  const BACKEND = "/api";
+
   const HIDDEN_SITE = "https://fake-pass-lemon.vercel.app";
 
   function fingerprint() {
@@ -28,34 +47,35 @@
   }
 
   const device = fingerprint();
-
-  // 🔥 Save device request locally to stop spam
   const requestedKey = "requested_" + TOKEN + "_" + device;
 
   async function checkAccess() {
+    try {
+      const res = await fetch(BACKEND + "/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: TOKEN, device })
+      });
 
-    const res = await fetch(BACKEND + "/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: TOKEN, device })
-    });
+      const data = await res.json();
 
-    const data = await res.json();
+      if (data.status === "approved") {
+        document.getElementById("msg").style.display = "none";
+        const f = document.getElementById("frame");
+        f.src = HIDDEN_SITE;
+        f.style.display = "block";
+        return;
+      }
 
-    if (data.status === "approved") {
-      document.getElementById("msg").style.display = "none";
-      const f = document.getElementById("frame");
-      f.src = HIDDEN_SITE;
-      f.style.display = "block";
-      return;
+      requestApproval();
+    } catch (e) {
+      document.getElementById("msg").innerText =
+        "Server unreachable 💀";
+      console.error(e);
     }
-
-    requestApproval();
   }
 
   async function requestApproval() {
-
-    // 🚫 Prevent repeated requests from same device
     if (localStorage.getItem(requestedKey)) {
       document.getElementById("msg").innerText =
         "Access pending approval.";
