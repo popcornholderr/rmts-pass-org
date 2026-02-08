@@ -3,7 +3,12 @@ const cors = require("cors");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
 // 🧠 In-memory token store
@@ -88,4 +93,3 @@ app.get("/", (req, res) => {
 
 // ❌ DO NOT app.listen() ON VERCEL
 module.exports = app;
-
